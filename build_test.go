@@ -66,7 +66,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		Expect(err).NotTo(HaveOccurred())
 
 		entryResolver = &fakes.EntryResolver{}
-		entryResolver.ResolveCall.Returns.BuildpackPlanEntry = packit.BuildpackPlanEntry{
+		entryResolver.ResolveEntriesCall.Returns.BuildpackPlanEntry = packit.BuildpackPlanEntry{
 			Name: "node",
 			Metadata: map[string]interface{}{
 				"version":        "~10",
@@ -168,7 +168,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 		Expect(filepath.Join(layersDir, "node")).To(BeADirectory())
 
-		Expect(entryResolver.ResolveCall.Receives.BuildpackPlanEntrySlice).To(Equal([]packit.BuildpackPlanEntry{
+		Expect(entryResolver.ResolveEntriesCall.Receives.Entries).To(Equal([]packit.BuildpackPlanEntry{
 			{
 				Name: "node",
 				Metadata: map[string]interface{}{
@@ -252,14 +252,18 @@ nodejs:
 			workingDir, err = ioutil.TempDir("", "working-dir")
 			Expect(err).NotTo(HaveOccurred())
 
-			entryResolver.ResolveCall.Returns.BuildpackPlanEntry = packit.BuildpackPlanEntry{
+			entryResolver.ResolveEntriesCall.Returns.BuildpackPlanEntry = packit.BuildpackPlanEntry{
 				Name: "node",
 				Metadata: map[string]interface{}{
 					"version":        "~10",
 					"version-source": "buildpack.yml",
-					"launch":         true,
-					"build":          true,
 				},
+			}
+
+			entryResolver.MergeLayerTypesCall.Returns.LayerTypeSlice = []packit.LayerType{
+				packit.LaunchLayer,
+				packit.BuildLayer,
+				packit.CacheLayer,
 			}
 
 			planRefinery.BillOfMaterialCall.Returns.BuildpackPlan = packit.BuildpackPlan{
